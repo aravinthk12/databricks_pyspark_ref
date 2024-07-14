@@ -37,28 +37,14 @@ class DataWorkflowBase(ABC):
         else:
             print("process ran successfully, but write_flag is set to false")
 
-    # @abstractmethod
+    @abstractmethod
     def _load_data(self, spark):
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def _process_data(self):
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def _populate_tables(self):
-        pass
-
-    @staticmethod
-    def _read_data(table_name):
-        """
-        Reader method to read data from a specified table name.
-        This method is intended to be used by subclasses.
-        """
-        # Implement your data reading logic here
-        spark = get_spark_session()
-        return spark.table(table_name)
-
-    @staticmethod
-    def _populate_table():
         pass

@@ -1,10 +1,10 @@
-from databricks_pyspark_ref.business_logics.get_aggregated_sales_data import SalesData
+from databricks_pyspark_ref.business_logics.SalesDataInsights import SalesDataInsights
 from databricks_pyspark_ref.utils.helpers import get_spark_session
 # from pyspark.dbutils import DBUtils
 from datetime import datetime as dt
 
 process_mapping = {
-    "sales_agg_job": SalesData
+    "sales_agg_job": SalesDataInsights
 }
 
 if __name__ == "__main__":
