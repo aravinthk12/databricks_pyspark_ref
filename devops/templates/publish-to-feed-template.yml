@@ -1,0 +1,53 @@
+# YAML Configuration for Deployment Job to Databricks
+
+# This job is designed to deploy artifacts to Databricks and includes steps for downloading build artifacts,
+# deploying Python wheels to Databricks File System (DBFS), and deploying notebooks to shared folders.
+
+# todo: move whl file deployment from dbfs to volumes after unity catalog implementation
+
+parameters:
+  - name: artifact_name
+    type: string
+  - name: product_name
+    type: string
+  - name: developer_name
+    type: string
+    default: ''
+  - name: bearer_token
+    type: string
+  - name: repo_path_notebook_copy
+    type: string
+    default: 'src/data_engineering/notebooks'
+
+steps:
+  # Step 1: Download build artifacts from the previous build job.
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: ${{parameters.artifact_name}}
+      extractTars: false
+      downloadPath: '$(System.ArtifactsDirectory)'
+
+  # Step 2: Deploy Python wheel artifacts to Databricks File System (DBFS).
+  - task: databricksDeployDBFSFilesTask@0
+    displayName: 'Deploy wheel to DBFS'
+    inputs:
+      authMethod: 'bearer'
+      bearerToken: ${{parameters.bearer_token}}
+      region: 'eastus2'
+      LocalRootFolder: '$(System.ArtifactsDirectory)/${{parameters.artifact_name}}'
+      FilePattern: '*.whl'
+      TargetLocation: '/libs/${{parameters.product_name}}/${{parameters.developer_name}}'
+
+  # Step 3: Deploy run notebooks to shared folders on Databricks.
+  - task: databricksDeployScripts@0
+    displayName: 'Deploy Notebooks to shared folders'
+    inputs:
+      bearerToken: ${{parameters.bearer_token}}
+      region: eastus2
+      localPath: ${{parameters.repo_path_notebook_copy}}
+      databricksPath: /Shared/${{parameters.product_name}}/main
+
+# te: This job is crucial for deploying Python artifacts and notebooks to Databricks,
+# facilitating the continuous integration and deployment process for the specified use case.
+# The detailed docstring provides insights into each step's purpose and its contribution to the overall deployment process.
