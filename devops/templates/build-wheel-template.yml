@@ -1,0 +1,33 @@
+# YAML Configuration for Build Job
+
+# Note: This job is designed to build and publish Python artifacts using the specified tag name.
+parameters:
+  - name: build_version
+    default: 9.9.9
+  - name: artifact_name
+    type: string
+
+# Steps to be executed within the job.
+steps:
+  # Step 1: Install the 'build' tool using pip.
+  - script: |
+      pip install build
+    displayName: 'Install build'
+
+  # Step 2: Set the BUILD_VERSION variable and initiate the Python wheel package build.
+  - script: |
+      set BUILD_VERSION=${{parameters.build_version}}
+      echo "Wheel package Build version: %BUILD_VERSION%"
+      python -m build -w
+    displayName: 'Python build'
+
+  # Step 3: Publish the build artifacts to Azure Pipelines.
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish build artifacts to Azure Pipelines'
+    inputs:
+      PathtoPublish: dist
+      ArtifactName: ${{parameters.artifact_name}}
+
+# Note: This job is responsible for building a Python package and publishing it to Azure Pipelines.
+# The job utilizes the 'build' tool, sets the build version, and publishes the resulting artifacts.
+# The detailed docstring provides insights into each step's purpose and its contribution to the overall build process.

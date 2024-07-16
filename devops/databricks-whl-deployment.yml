@@ -1,0 +1,90 @@
+# Azure DevOps Pipeline Configuration
+
+# Trigger configuration - This pipeline is triggered on the creation of a new tag.
+# Note: Tag names should follow Semantic Versioning 2.0.0 (MAJOR.MINOR.PATCH)
+# with an exception to '_dbtest' at the end of the tag name to create a wheel
+# package and deploy to Databricks workspace -> Databricks File System (DBFS).
+
+trigger:
+  tags:
+    include:
+      - '*'
+
+# Definition of pipeline resources, including the Git repository
+# and branch/tag to build.
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: refs/tags/$(Build.SourceBranch)
+
+pool:
+  vmImage: 'windows-latest'
+
+# Variable definitions for reuse throughout the pipeline.
+variables:
+  - name: TAG_NAME
+    value: $[replace(variables['Build.SourceBranch'], 'refs/tags/', '')]
+  - name: VERSION
+    value: $[replace(variables['TAG_NAME'], '_dbtest', '')]
+  - group: ARDI-CICD-VARIABLES
+  - name: DEVELOPER
+    value: ''
+
+# Pipeline stages definition.
+stages:
+  - stage: SonarQubeTesting
+    jobs:
+      - job:
+        steps:
+          - template: templates/sonarqube-testing-template.yml
+            parameters:
+              sonarqube_service_connection: e51d3a37-7e49-4d21-8865-b586847f668d
+              cli_project_key: INVENTORY-REBALANCING
+              cli_project_name: Inventory_Rebalancing_Sonarqube
+
+  - stage: BuildArtifact
+    # dependsOn: SonarQubeTesting
+    jobs:
+      - job:
+        displayName: 'Build Artifact'
+        steps:
+          - template: templates/build-wheel-template.yml
+            parameters:
+              build_version: $(VERSION)
+              artifact_name: $(TAG_NAME)
+
+  - stage: PublishArtifact
+    dependsOn: BuildArtifact
+    condition: eq(variables['TAG_NAME'], variables['VERSION'])
+    jobs:
+      - job:
+        displayName: 'Publish Artifact to feed'
+        steps:
+          - template: templates/publish-to-feed-template.yml
+            parameters:
+              azure_feed_name: $(FEED_NAME)
+              azure_projects: $(PROJECT)
+              artifact_name: $(TAG_NAME)
+
+  - stage: DeployToDatabricks
+    dependsOn: BuildArtifact
+    condition: contains(variables['TAG_NAME'], 'dbtest')
+    jobs:
+      - job:
+        displayName: 'DeployToDatabricks'
+        steps:
+          - template: templates/deploy-whl-to-dbfs-template.yml
+            parameters:
+              artifact_name: $(TAG_NAME)
+              product_name: $(PRODUCT_NAME)
+              developer_name: $(DEVELOPER)
+              bearer_token: $(BEARER_TOKEN)
+              repo_path_notebook_copy: 'src/data_engineering/notebooks'
+
+          - template: templates/deploy-scripts-to-dbfs-template.yml
+            parameters:
+              product_name: $(PRODUCT_NAME)
+              bearer_token: $(BEARER_TOKEN)
+              repo_path_notebook_copy: 'pre-deployment-scripts'
+              file_format: 'sh'

@@ -1,0 +1,22 @@
+parameters:
+  - name: product_name
+    type: string
+  - name: bearer_token
+    type: string
+  - name: repo_path_notebook_copy
+    type: string
+    default: 'src/data_engineering/notebooks'
+  - name: file_format
+    type: string
+    default: 'whl'
+
+steps:
+  - task: databricksDeployDBFSFilesTask@0
+    displayName: 'Deploy files to DBFS'
+    inputs:
+      authMethod: 'bearer'
+      bearerToken: ${{parameters.bearer_token}}
+      region: 'eastus2'
+      LocalRootFolder: ${{parameters.repo_path_notebook_copy}}
+      FilePattern: '*.${{parameters.file_format}}'
+      TargetLocation: '/libs/${{parameters.product_name}}'
