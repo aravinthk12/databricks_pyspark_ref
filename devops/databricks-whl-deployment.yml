@@ -33,15 +33,6 @@ variables:
 
 # Pipeline stages definition.
 stages:
-  - stage: SonarQubeTesting
-    jobs:
-      - job:
-        steps:
-          - template: templates/sonarqube-testing-template.yml
-            parameters:
-              sonarqube_service_connection: e51d3a37-7e49-4d21-8865-b586847f668d
-              cli_project_key: INVENTORY-REBALANCING
-              cli_project_name: Inventory_Rebalancing_Sonarqube
 
   - stage: BuildArtifact
     # dependsOn: SonarQubeTesting
