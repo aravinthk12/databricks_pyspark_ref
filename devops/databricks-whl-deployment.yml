@@ -29,7 +29,7 @@ variables:
     value: $[replace(variables['TAG_NAME'], '_dbtest', '')]
   - group: ARDI-CICD-VARIABLES
   - name: DEVELOPER
-    value: ''
+    value: $(Build.RequestedFor)
 
 # Pipeline stages definition.
 stages:
@@ -44,7 +44,7 @@ stages:
             parameters:
               build_version: $(VERSION)
               artifact_name: $(TAG_NAME)
-
+.
   - stage: PublishArtifact
     dependsOn: BuildArtifact
     condition: eq(variables['TAG_NAME'], variables['VERSION'])
