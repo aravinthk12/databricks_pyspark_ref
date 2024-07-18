@@ -1,6 +1,6 @@
 from databricks_pyspark_ref.business_logics.SalesDataInsights import SalesDataInsights
 from databricks_pyspark_ref.utils.helpers import get_spark_session
-# from pyspark.dbutils import DBUtils
+from pyspark.dbutils import DBUtils
 from datetime import datetime as dt
 
 process_mapping = {
@@ -10,9 +10,6 @@ process_mapping = {
 if __name__ == "__main__":
     # creating spark instance
     spark = get_spark_session()
-
-    # creating dbutils instance to work with databricks
-    # new_dbutils = DBUtils(spark)
 
     # Initialize variables with default values
     process_name = "sales_agg_job"
@@ -25,9 +22,7 @@ if __name__ == "__main__":
     widget_names = ["process_name", "environment", "process_date", "market", "delta_load_flag"]
     for widget_name in widget_names:
         try:
-            # globals()[widget_name] = new_dbutils.widgets.get(widget_name)
-            # commenting out as not working with databricks
-            pass
+            globals()[widget_name] = DBUtils(spark).widgets.get(widget_name)
         except Exception as e:
             print(f"Failed to retrieve '{widget_name}' widget value: {str(e)}")
 

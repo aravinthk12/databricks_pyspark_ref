@@ -44,7 +44,7 @@ stages:
             parameters:
               build_version: $(VERSION)
               artifact_name: $(TAG_NAME)
-.
+
   - stage: PublishArtifact
     dependsOn: BuildArtifact
     condition: eq(variables['TAG_NAME'], variables['VERSION'])
